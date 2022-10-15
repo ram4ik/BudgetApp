@@ -7,20 +7,39 @@
 
 import SwiftUI
 
+// View is the View Model in SwiftUI
 struct ContentView: View {
+    
+    @FetchRequest(sortDescriptors: [SortDescriptor(\.name)]) private var budgetCategoryResults: FetchedResults<BudgetCategory>
+    @State private var isPresented: Bool = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        NavigationStack {
+            List(budgetCategoryResults) { budgetCategory in
+                HStack {
+                    Text(budgetCategory.name ?? "")
+                    Spacer()
+                    Text(budgetCategory.amount as NSNumber, formatter: NumberFormatter.currency)
+                }
+                
+            }.toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add New Category") {
+                        isPresented = true
+                    }
+                }
+            }.sheet(isPresented: $isPresented) {
+                AddBudgetCategoryView()
+            }
         }
-        .padding()
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        NavigationStack {
+            ContentView()
+                .environment(\.managedObjectContext, CoreDataManager.shared.persistentContainer.viewContext)
+        }
     }
 }
